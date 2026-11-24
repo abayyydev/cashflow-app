@@ -1,11 +1,11 @@
-name: Build Release AAB
+name: Build Release AAB & APK
 
 on:
   workflow_dispatch:
 
 jobs:
   build-release:
-    name: Build Android App Bundle (AAB) Release
+    name: Build Release Android (AAB & APK)
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
 
-      - name: Build Release Android App Bundle
+      - name: Build Release APK and AAB
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/upload-keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -52,16 +52,22 @@ jobs:
           VERSION_CODE: ${{ github.run_number }}
         run: |
           cd android
-          ./gradlew bundleRelease --stacktrace
+          ./gradlew assembleRelease bundleRelease --stacktrace
 
       - name: Clean Up Keystore
         if: always()
         run: |
           rm -f "$RUNNER_TEMP/upload-keystore.jks"
 
-      - name: Upload Release AAB Artifact
+      - name: Prepare Release Artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp android/app/build/outputs/bundle/release/*.aab release-artifacts/
+          cp android/app/build/outputs/apk/release/*.apk release-artifacts/
+
+      - name: Upload Release Artifacts (APK & AAB)
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          name: app-release-bundle
+          path: release-artifacts/
           retention-days: 30
