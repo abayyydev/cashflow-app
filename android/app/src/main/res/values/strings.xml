@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Abayyydev Cashflow</string>
     <string name="title_activity_main">Abayyydev Cashflow</string>
-    <string name="package_name">com.catatankeuangan</string>
-    <string name="custom_url_scheme">com.catatankeuangan</string>
+    <string name="package_name">com.abayyy.cashflow</string>
+    <string name="custom_url_scheme">com.abayyy.cashflow</string>
 </resources>

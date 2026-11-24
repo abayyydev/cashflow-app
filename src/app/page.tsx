@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import SummaryCards from '@/components/SummaryCards';
 import MonthFilter from '@/components/MonthFilter';
 import TransactionList from '@/components/TransactionList';
 import TransactionModal from '@/components/TransactionModal';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
+import ExportModal from '@/components/ExportModal';
+import OfflineIndicator from '@/components/OfflineIndicator';
 import { useCashflow, useIsMounted } from '@/hooks/useCashflow';
 import { Transaction, TransactionFormData } from '@/types/cashflow';
 import { getCurrentYearMonth, formatMonthYear } from '@/utils/format';
@@ -18,6 +21,7 @@ export default function CashflowApp() {
     addTransaction,
     updateTransaction,
     deleteTransaction,
+    clearAllTransactions,
   } = useCashflow();
 
   const isMounted = useIsMounted();
@@ -35,6 +39,9 @@ export default function CashflowApp() {
   // State Modal Konfirmasi Hapus
   const [deletingTransaction, setDeletingTransaction] =
     useState<Transaction | null>(null);
+
+  // State Modal Ekspor & Menu
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Ambil daftar bulan unik yang ada di transaksi
   const availableMonths = useMemo(() => {
@@ -121,7 +128,10 @@ export default function CashflowApp() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col pb-24 sm:pb-12">
       {/* Header Aplikasi */}
-      <Header />
+      <Header onOpenMenu={() => setIsExportModalOpen(true)} />
+
+      {/* Indikator Status Offline */}
+      <OfflineIndicator />
 
       {/* Konten Utama */}
       <main className="max-w-2xl w-full mx-auto px-4 py-5 space-y-5 flex-1">
@@ -147,6 +157,22 @@ export default function CashflowApp() {
               filterLabel={filterLabel}
             />
 
+            {/* Tombol Cepat Ekspor / Bagikan Laporan di Atas Daftar */}
+            {filteredTransactions.length > 0 && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 text-xs font-semibold text-zinc-700 dark:text-zinc-300 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  Bagikan Laporan ({filterLabel})
+                </button>
+              </div>
+            )}
+
             {/* Daftar Transaksi */}
             <TransactionList
               transactions={filteredTransactions}
@@ -154,6 +180,29 @@ export default function CashflowApp() {
               onDelete={setDeletingTransaction}
               onAddNew={handleOpenAddModal}
             />
+
+            {/* Footer Navigasi & Legalitas */}
+            <footer className="pt-8 pb-4 text-center space-y-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
+              <div className="flex items-center justify-center gap-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <Link
+                  href="/privacy"
+                  className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                >
+                  Kebijakan Privasi
+                </Link>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                >
+                  Ekspor & Cadangan
+                </button>
+              </div>
+              <p className="text-[11px] text-zinc-400">
+                Cash Flow v1.0.0 • Data disimpan aman di perangkat Anda
+              </p>
+            </footer>
           </>
         )}
       </main>
@@ -197,6 +246,16 @@ export default function CashflowApp() {
         transaction={deletingTransaction}
         onClose={() => setDeletingTransaction(null)}
         onConfirm={handleConfirmDelete}
+      />
+
+      {/* Modal Menu & Ekspor Laporan */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        transactions={transactions}
+        filteredTransactions={filteredTransactions}
+        filterLabel={filterLabel}
+        onClearAll={clearAllTransactions}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-package com.catatankeuangan;
+package com.abayyy.cashflow;
 
 import com.getcapacitor.BridgeActivity;
 

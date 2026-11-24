@@ -113,11 +113,21 @@ export function useCashflow() {
     [saveToStorage]
   );
 
+  const clearAllTransactions = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      dispatchStorageEvent();
+    } catch (error) {
+      console.error('Gagal menghapus semua data:', error);
+    }
+  }, []);
+
   return {
     transactions,
     isLoaded,
     addTransaction,
     updateTransaction,
     deleteTransaction,
+    clearAllTransactions,
   };
 }
